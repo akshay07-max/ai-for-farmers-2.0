@@ -1,0 +1,104 @@
+OPENWEATHER_API_KEY=your_key_here
+```
+
+---
+
+## Complete Testing Guide — All Steps 1-4
+
+### 🔐 Auth (Step 1)
+```
+# 1. Register (watch terminal for OTP printed + real SMS to phone)
+POST /api/v1/auth/register
+{ "name": "Ashu Patil", "phone": "9876543210", "password": "Test@1234", "district": "nashik", "primaryCrops": ["onion", "wheat"] }
+
+# 2. Verify OTP (use code from your SMS or terminal)
+POST /api/v1/auth/verify-otp
+{ "phone": "9876543210", "otp": "123456" }
+
+# 3. Login → copy the accessToken
+POST /api/v1/auth/login
+{ "phone": "9876543210", "password": "Test@1234" }
+
+# 4. Get profile (use token from login)
+GET /api/v1/users/me
+Header: Authorization: Bearer YOUR_TOKEN
+
+# 5. Update profile — add crops so weather/market alerts work
+PUT /api/v1/users/me
+Header: Authorization: Bearer YOUR_TOKEN
+{ "district": "nashik", "primaryCrops": ["onion", "wheat"], "languagePreference": "mr" }
+```
+
+### 📈 Market (Step 2)
+```
+# 6. Seed test data first (run once)
+GET /api/v1/market/seed
+
+# 7. Get crop list (public, no token)
+GET /api/v1/market/crops
+
+# 8. Live price (needs token)
+GET /api/v1/market/price?crop=onion&market=Lasalgaon
+Header: Authorization: Bearer YOUR_TOKEN
+
+# 9. Price history for chart
+GET /api/v1/market/history?crop=onion&market=Lasalgaon&days=30
+Header: Authorization: Bearer YOUR_TOKEN
+
+# 10. 7-day price prediction
+GET /api/v1/market/predict?crop=onion&market=Lasalgaon&days=7
+Header: Authorization: Bearer YOUR_TOKEN
+```
+
+### 🔔 Notifications + Payments (Step 3)
+```
+# 11. See your notification history (OTP was logged here)
+GET /api/v1/notifications
+Header: Authorization: Bearer YOUR_TOKEN
+
+# 12. See all plans + pricing
+GET /api/v1/payments/plans
+
+# 13. Create a Razorpay order
+POST /api/v1/payments/create-order
+Header: Authorization: Bearer YOUR_TOKEN
+{ "plan": "PREMIUM", "billing": "MONTHLY" }
+# → Returns orderId. In the app, pass this to Razorpay checkout SDK.
+# For backend testing, use Razorpay test cards from their dashboard.
+
+# 14. Check my subscription
+GET /api/v1/payments/subscription
+Header: Authorization: Bearer YOUR_TOKEN
+```
+
+### 🌤️ Weather (Step 4)
+```
+# 15. Supported districts (public, no token)
+GET /api/v1/weather/districts
+
+# 16. Current weather + crop risk for specific district+crops
+GET /api/v1/weather/current?district=nashik&crops=onion,wheat&lang=mr
+Header: Authorization: Bearer YOUR_TOKEN
+# → Returns temperature, humidity, rain + risk score per crop in Marathi
+
+# 17. 5-day forecast
+GET /api/v1/weather/forecast?district=nashik
+Header: Authorization: Bearer YOUR_TOKEN
+
+# 18. My risk (uses your profile's district + primaryCrops automatically)
+GET /api/v1/weather/my-risk
+Header: Authorization: Bearer YOUR_TOKEN
+```
+
+### ⏰ Cron Jobs (Steps 3+4)
+```
+# These run automatically at scheduled times. To test them NOW without waiting:
+# Open a new terminal while server is running and run:
+
+node -e "require('./src/jobs/marketSyncJob').syncMarketPrices()"
+node -e "require('./src/jobs/weatherAlertJob').runWeatherAlerts()"
+node -e "require('./src/jobs/subscriptionExpiryJob').checkSubscriptionExpiry()"
+
+# Watch your main terminal — you'll see the job logs appear in real time.
+# If a farmer has primaryCrops set AND weather risk is HIGH,
+# you'll see push + SMS notifications fire.

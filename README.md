@@ -1,1 +1,1 @@
-"# ai-for-farmers-2.0" 
+"# ai-for-farmers" 

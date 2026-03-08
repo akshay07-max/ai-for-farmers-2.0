@@ -11,6 +11,16 @@ OPENWEATHER_API_KEY=your_key_here
 POST /api/v1/auth/register
 { "name": "Ashu Patil", "phone": "9876543210", "password": "Test@1234", "district": "nashik", "primaryCrops": ["onion", "wheat"] }
 
+{ 
+    "name": "Kajal Rajgurav", 
+    "phone": "9702029199", "password": "Test@12345", "district": "Khed", "primaryCrops": ["onion", "wheat", "corn", "sugarcane"]
+    }
+
+    { 
+    "name": "Tejal Rajgurav", 
+    "phone": "8999319131", "password": "Test@123456", "district": "Pune", "primaryCrops": ["onion", "wheat", "corn", "sugarcane"]
+    }
+
 # 2. Verify OTP (use code from your SMS or terminal)
 POST /api/v1/auth/verify-otp
 { "phone": "9876543210", "otp": "123456" }

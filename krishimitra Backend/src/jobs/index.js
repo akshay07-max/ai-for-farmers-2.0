@@ -1,24 +1,13 @@
 // ================================================================
 // CRON JOB SCHEDULER
-// All background jobs are registered and started here.
-// Called once from app.js at startup.
-//
-// Cron syntax: minute hour day month weekday
-//   '0 6 * * *'    = every day at 6:00 AM
-//   '0 */6 * * *'  = every 6 hours
-//   '0 9 * * 1'    = every Monday at 9 AM
 // ================================================================
 const cron = require("node-cron");
 const logger = require("../utils/logger");
 
-// Import individual job functions
 const { syncMarketPrices } = require("./marketSyncJob");
 const { checkSubscriptionExpiry } = require("./subscriptionExpiryJob");
+const { runWeatherAlerts } = require("./weatherAlertJob");
 
-/**
- * Start all cron jobs.
- * Called from app.js after DB + Redis are connected.
- */
 const startCronJobs = () => {
   if (process.env.ENABLE_CRON_JOBS !== "true") {
     logger.warn(
@@ -29,8 +18,7 @@ const startCronJobs = () => {
 
   logger.info("⏰ Starting cron jobs...");
 
-  // ── Market price sync ─────────────────────────────────────
-  // Runs every day at 8:00 AM — after mandis open and report prices
+  // Market price sync — daily 8:00 AM IST (after mandis open)
   cron.schedule(
     "0 8 * * *",
     async () => {
@@ -40,8 +28,17 @@ const startCronJobs = () => {
     { timezone: "Asia/Kolkata" },
   );
 
-  // ── Subscription expiry check ─────────────────────────────
-  // Runs every day at 9:00 AM — warns farmers before plan expires
+  // Weather alerts — 6:00 AM + 6:00 PM IST (morning + evening check)
+  cron.schedule(
+    "0 6,18 * * *",
+    async () => {
+      logger.info("[CRON] Weather alert check started");
+      await runWeatherAlerts();
+    },
+    { timezone: "Asia/Kolkata" },
+  );
+
+  // Subscription expiry check — daily 9:00 AM IST
   cron.schedule(
     "0 9 * * *",
     async () => {
@@ -52,8 +49,9 @@ const startCronJobs = () => {
   );
 
   logger.info("✅ Cron jobs scheduled");
-  logger.info("   • Market price sync:    daily 8:00 AM IST");
-  logger.info("   • Subscription expiry:  daily 9:00 AM IST");
+  logger.info("   • Market price sync:    daily  8:00 AM IST");
+  logger.info("   • Weather alerts:       daily  6:00 AM + 6:00 PM IST");
+  logger.info("   • Subscription expiry:  daily  9:00 AM IST");
 };
 
 module.exports = { startCronJobs };

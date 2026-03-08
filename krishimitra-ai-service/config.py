@@ -1,0 +1,1 @@
+# env vars, Pinecone + Gemini clients

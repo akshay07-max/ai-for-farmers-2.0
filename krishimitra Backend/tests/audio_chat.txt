@@ -1,0 +1,31 @@
+    # Terminal 1 — Python AI service
+python run.py
+
+# Terminal 2 — Node.js backend
+npm run dev
+```
+
+## Testing
+
+**Text chat** (easiest to test first):
+```
+POST /api/v1/chat/message
+Authorization: Bearer YOUR_TOKEN
+{ "message": "कांद्यावर फुलकिडे आले आहेत काय करू?" }
+```
+→ Returns Gemini answer in Marathi with RAG sources
+
+**Voice query** (send an actual audio file):
+```
+POST /api/v1/voice/query
+Authorization: Bearer YOUR_TOKEN
+Content-Type: multipart/form-data
+  audio: <your .mp3 file>
+  language: mr
+```
+→ Returns transcript + text answer + base64 MP3 audio (play it in the app)
+
+**Chat history:**
+```
+GET /api/v1/chat/sessions
+GET /api/v1/chat/sessions/:sessionId

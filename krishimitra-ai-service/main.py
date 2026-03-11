@@ -1,6 +1,6 @@
 # ================================================================
 # KRISHIMITRA AI SERVICE — FastAPI Application
-# Port: 8000
+# Port: 8500
 # Do NOT run this directly. Use: python run.py
 # ================================================================
 import logging

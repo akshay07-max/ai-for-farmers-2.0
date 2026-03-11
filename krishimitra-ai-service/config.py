@@ -18,7 +18,7 @@ PINECONE_API_KEY    = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "krishimitra-knowledge")
 PINECONE_HOST       = os.getenv("PINECONE_HOST")
 MONGODB_URI         = os.getenv("MONGODB_URI")
-PORT                = int(os.getenv("PORT", 8000))
+PORT                = int(os.getenv("PORT", 8500))
 
 # Multilingual embedding model — supports Marathi, Hindi, English
 # Produces 768-dimensional vectors (must match your Pinecone index dimension)

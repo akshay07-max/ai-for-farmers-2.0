@@ -24,12 +24,12 @@ if __name__ == "__main__":
     # (avoids any circular import issues)
     from dotenv import load_dotenv
     load_dotenv()
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8500))
 
     print(f"Starting KrishiMitra AI Service on port {port}...")
     uvicorn.run(
         app,
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=port,
         reload=False,
         workers=1,

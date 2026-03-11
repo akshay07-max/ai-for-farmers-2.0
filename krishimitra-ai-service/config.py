@@ -1,12 +1,13 @@
-# env vars, Pinecone + Gemini clients
-
 # ================================================================
 # CONFIG — loads all env vars and initializes AI clients
-# Import from here, never initialize clients in individual files.
 # ================================================================
 import os
+import sys
 import logging
 from dotenv import load_dotenv
+
+# Fix for Windows — ensures all files in this folder are importable
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -20,34 +21,25 @@ MONGODB_URI         = os.getenv("MONGODB_URI")
 PORT                = int(os.getenv("PORT", 8000))
 
 # Multilingual embedding model — supports Marathi, Hindi, English
-# Produces 768-dimensional vectors (matches your Pinecone index dimension)
+# Produces 768-dimensional vectors (must match your Pinecone index dimension)
 EMBEDDING_MODEL = "paraphrase-multilingual-mpnet-base-v2"
 
-# ── Gemini client ─────────────────────────────────────────────
-gemini_model = None
+# ── Gemini client (new google-genai SDK) ──────────────────────
+gemini_client = None
+GEMINI_MODEL  = "gemini-2.0-flash"
+
 if GEMINI_API_KEY:
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        gemini_model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            generation_config={
-                "temperature":       0.4,
-                "top_p":             0.85,
-                "max_output_tokens": 1024,
-            },
-            safety_settings=[
-                {"category": "HARM_CATEGORY_HARASSMENT",        "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_HATE_SPEECH",       "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
-            ]
-        )
-        logger.info("Gemini initialized (gemini-1.5-flash)")
+        from google import genai
+        gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+        logger.info(f"✅ Gemini initialized ({GEMINI_MODEL})")
     except Exception as e:
-        logger.error(f"Gemini init failed: {e}")
+        logger.error(f"❌ Gemini init failed: {e}")
 else:
-    logger.warning("GEMINI_API_KEY not set")
+    logger.warning("⚠️  GEMINI_API_KEY not set")
+
+# Alias — so existing code that references gemini_model still works
+gemini_model = gemini_client
 
 # ── Pinecone client ───────────────────────────────────────────
 pinecone_index = None
@@ -56,11 +48,11 @@ if PINECONE_API_KEY and PINECONE_HOST:
         from pinecone import Pinecone
         pc = Pinecone(api_key=PINECONE_API_KEY)
         pinecone_index = pc.Index(host=PINECONE_HOST)
-        logger.info("Pinecone initialized")
+        logger.info("✅ Pinecone initialized")
     except Exception as e:
-        logger.error(f"Pinecone init failed: {e}")
+        logger.error(f"❌ Pinecone init failed: {e}")
 else:
-    logger.warning("Pinecone credentials not set")
+    logger.warning("⚠️  Pinecone credentials not set — check PINECONE_API_KEY and PINECONE_HOST in .env")
 
 # ── Embedding model (lazy loaded on first use) ────────────────
 _embedding_model = None
@@ -71,7 +63,7 @@ def get_embedding_model():
         logger.info("Loading embedding model — first time takes ~30 seconds...")
         from sentence_transformers import SentenceTransformer
         _embedding_model = SentenceTransformer(EMBEDDING_MODEL)
-        logger.info("Embedding model loaded")
+        logger.info("✅ Embedding model loaded")
     return _embedding_model
 
 def embed_text(text: str) -> list:

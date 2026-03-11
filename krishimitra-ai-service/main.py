@@ -1,10 +1,7 @@
-# new Python FastAPI server (port 8000)
-# FastAPI app, all routes
-
 # ================================================================
 # KRISHIMITRA AI SERVICE — FastAPI Application
 # Port: 8000
-# Called by the Node.js backend (never directly by the mobile app)
+# Do NOT run this directly. Use: python run.py
 # ================================================================
 import logging
 import sys
@@ -16,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 import config
-from schemas import (
+from models.schemas import (
     ChatRequest, ChatResponse,
     STTResponse,
     TTSRequest,
@@ -64,8 +61,6 @@ app.add_middleware(
 
 
 # ── Internal API key guard ─────────────────────────────────────
-# Node.js passes this header on every request.
-# Prevents external callers from hitting the AI service directly.
 import os
 INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "krishimitra-internal-2026")
 

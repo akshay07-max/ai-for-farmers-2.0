@@ -299,7 +299,7 @@ async def query_rag(request: QueryRequest):
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host    = "0.0.0.0",
+        host="127.0.0.1",
         port    = config.PORT,
         reload  = True,       # auto-restart on code changes (dev only)
         workers = 1,          # single worker (Whisper model can't be shared)

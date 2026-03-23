@@ -1,0 +1,42 @@
+# 1. Add a cattle animal
+POST /api/v1/cattle
+Authorization: Bearer TOKEN
+{
+  "name": "Lakshmi", "species": "COW", "breed": "HF",
+  "gender": "FEMALE", "dateOfBirth": "2021-03-01",
+  "isLactating": true, "lastHeatDate": "2026-02-18"
+}
+
+# 2. Log health reading — try HIGH temperature to trigger alert
+POST /api/v1/cattle/:cattleId/health
+{
+  "temperature": 40.3, "milkMorning": 3, "milkEvening": 2.5,
+  "appetite": "REDUCED", "activity": "LETHARGIC",
+  "symptoms": ["FEVER", "LOSS_OF_APPETITE"]
+}
+→ anomaly.riskLevel should be HIGH or CRITICAL
+→ push notification fires immediately
+
+# 3. Record vaccination
+POST /api/v1/cattle/:cattleId/vaccinations
+{
+  "vaccineName": "FMD Vaccine", "disease": "Foot and Mouth Disease",
+  "givenDate": "2026-03-01", "givenBy": "Dr. Patil"
+}
+→ nextDueDate auto-set 180 days ahead
+
+# 4. Milk stats
+GET /api/v1/cattle/:cattleId/milk?days=30
+
+# 5. Register IoT device (future SmartTag)
+POST /api/v1/cattle/:cattleId/device/register
+{ "deviceId": "TAG-001" }
+→ returns deviceToken to flash into ESP32
+
+# 6. Simulate IoT reading (what your future hardware sends)
+POST /api/v1/cattle/iot/reading
+X-Device-Token: km_dev_xxxx
+{
+  "temperature": 39.1, "activity": 72,
+  "battery": 85, "gps": { "lat": 20.0, "lon": 73.78 }
+}

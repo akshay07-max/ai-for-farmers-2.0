@@ -1,0 +1,41 @@
+cd krishimitra-ai-service
+python seed_courses.py
+```
+
+---
+
+## Testing Flow
+```
+# 1. See available courses (public)
+GET /api/v1/learning/courses
+
+# 2. See learning plans (independent subscription)
+GET /api/v1/learning/plans
+
+# 3. Enroll in onion course (needs LEARNING_BASIC or PRO)
+POST /api/v1/learning/enroll/:courseId
+{ "language": "mr" }
+
+# 4. Start a live Sheti Mitra session
+POST /api/v1/learning/session/start
+{ "courseId": "...", "lessonId": "...", "language": "mr" }
+→ Sheti Mitra greets you and introduces the lesson
+
+# 5. Talk to Sheti Mitra
+POST /api/v1/learning/session/:sessionId/message
+{ "message": "हो, शिकायला तयार आहे" }
+→ Sheti Mitra starts teaching first concept
+
+# 6. Keep chatting until stage = "DONE"
+
+# 7. Get quiz for the lesson
+GET /api/v1/learning/courses/:courseId/lessons/:lessonId/quiz
+
+# 8. Submit quiz
+POST /api/v1/learning/courses/:courseId/lessons/:lessonId/quiz/submit
+{ "answers": [1, "माती सुधारण्यासाठी चुना वापरतो"], "language": "mr" }
+
+# 9. Syllabus builder conversation
+POST /api/v1/learning/syllabus/chat
+{ "message": "मला कांदा शेती शिकायची आहे, मी नवखा आहे", "history": [] }
+→ Sheti Mitra asks questions and builds your learning path

@@ -12,6 +12,13 @@ from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
+# tutor module
+from services import tutor_service
+from pydantic import BaseModel
+from typing import Optional, List
+
+
+
 import config
 from models.schemas import (
     ChatRequest, ChatResponse,
@@ -72,6 +79,47 @@ def verify_internal_key(x_internal_key: str = None):
     # if x_internal_key != INTERNAL_API_KEY:
     #     raise HTTPException(status_code=403, detail="Invalid internal API key")
 
+
+# tutor models (classes)
+
+class GenerateLessonRequest(BaseModel):
+    ai_prompt:      str
+    language:       str = "mr"
+    farmer_context: Optional[dict] = None
+
+class StartSessionRequest(BaseModel):
+    lesson_title:   str
+    lesson_content: str
+    language:       str = "mr"
+    farmer_name:    str = "शेतकरी"
+    farmer_context: Optional[dict] = None
+
+class ContinueSessionRequest(BaseModel):
+    farmer_message:  str
+    session_history: List[dict] = []
+    lesson_content:  str
+    teaching_state:  dict = {}
+    stage:           str = "INTRO"
+    language:        str = "mr"
+    farmer_context:  Optional[dict] = None
+
+class GenerateQuizRequest(BaseModel):
+    lesson_content: str
+    language:       str = "mr"
+    num_questions:  int = 4
+
+class EvaluateAnswerRequest(BaseModel):
+    question: str
+    answer:   str
+    criteria: str = ""
+    language: str = "mr"
+
+class SyllabusChatRequest(BaseModel):
+    farmer_message:    str
+    conversation:      List[dict] = []
+    farmer_context:    dict = {}
+    available_courses: List[dict] = []
+    language:          str = "mr"
 
 # ══════════════════════════════════════════════════════════════
 # HEALTH CHECK
@@ -289,6 +337,125 @@ async def query_rag(request: QueryRequest):
         )
         return QueryResponse(results=results, query=request.query)
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+# ================================================================
+# TUTOR ENDPOINTS — add these to your existing main.py
+# Paste this block BEFORE the "if __name__ == '__main__':" line
+# ================================================================
+
+# Add this import at the top of main.py with other service imports:
+# from services import tutor_service
+
+# ══════════════════════════════════════════════════════════════
+# TUTOR — Sheti Mitra AI Teaching Endpoints
+# Called by Node.js learning service only
+# ══════════════════════════════════════════════════════════════
+
+
+@app.post("/tutor/generate-lesson")
+async def generate_lesson(request: GenerateLessonRequest):
+    """Generate full lesson content for a topic. Result cached by Node.js."""
+    try:
+        from services import tutor_service
+        content = await tutor_service.generate_lesson_content(
+            request.ai_prompt,
+            request.language,
+            request.farmer_context,
+        )
+        return {"content": content}
+    except Exception as e:
+        logger.error(f"Lesson generation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/tutor/start-session")
+async def start_tutor_session(request: StartSessionRequest):
+    """Generate Sheti Mitra's opening message for a live lesson."""
+    try:
+        from services import tutor_service
+        result = await tutor_service.start_session(
+            request.lesson_title,
+            request.lesson_content,
+            request.language,
+            request.farmer_name,
+            request.farmer_context,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Start session error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/tutor/continue-session")
+async def continue_tutor_session(request: ContinueSessionRequest):
+    """Continue a live teaching session — advance through teaching stages."""
+    try:
+        from services import tutor_service
+        result = await tutor_service.continue_session(
+            request.farmer_message,
+            request.session_history,
+            request.lesson_content,
+            request.teaching_state,
+            request.stage,
+            request.language,
+            request.farmer_context,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Continue session error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/tutor/generate-quiz")
+async def generate_quiz(request: GenerateQuizRequest):
+    """Generate quiz questions from lesson content."""
+    try:
+        from services import tutor_service
+        questions = await tutor_service.generate_quiz(
+            request.lesson_content,
+            request.language,
+            request.num_questions,
+        )
+        return {"questions": questions}
+    except Exception as e:
+        logger.error(f"Quiz generation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/tutor/evaluate-answer")
+async def evaluate_answer(request: EvaluateAnswerRequest):
+    """Evaluate a farmer's open-ended quiz answer."""
+    try:
+        from services import tutor_service
+        result = await tutor_service.evaluate_open_answer(
+            request.question,
+            request.answer,
+            request.criteria,
+            request.language,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Answer evaluation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/tutor/syllabus-chat")
+async def syllabus_chat(request: SyllabusChatRequest):
+    """Conversational syllabus builder — Sheti Mitra recommends learning path."""
+    try:
+        from services import tutor_service
+        result = await tutor_service.syllabus_chat(
+            request.farmer_message,
+            request.conversation,
+            request.farmer_context,
+            request.available_courses,
+            request.language,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Syllabus chat error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

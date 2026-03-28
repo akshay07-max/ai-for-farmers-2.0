@@ -1,5 +1,5 @@
 // ================================================================
-// KRISHIMITRA AI — MAIN SERVER FILE (Step 7 update)
+// KRISHIMITRA AI — MAIN SERVER FILE (Step 8 update)
 // ================================================================
 require("dotenv").config();
 
@@ -28,10 +28,10 @@ const notifRoutes = require("./modules/notifications/notification.routes");
 const paymentRoutes = require("./modules/payments/payment.routes");
 const voiceRoutes = require("./modules/voice/voice.routes");
 const chatRoutes = require("./modules/chat/chat.routes");
-const cattleRoutes = require("./modules/cattle/cattle.routes"); // ← Step 7
+const cattleRoutes = require("./modules/cattle/cattle.routes");
+const learningRoutes = require("./modules/learning/learning.routes"); // ← Step 8
 // Upcoming:
-// const learningRoutes = require("./modules/learning/learning.routes");
-// const adminRoutes    = require("./modules/admin/admin.routes");
+// const adminRoutes = require("./modules/admin/admin.routes");
 
 const app = express();
 
@@ -89,7 +89,8 @@ app.use("/api/v1/notifications", notifRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/voice", voiceRoutes);
 app.use("/api/v1/chat", chatRoutes);
-app.use("/api/v1/cattle", cattleRoutes); // ← Step 7
+app.use("/api/v1/cattle", cattleRoutes);
+app.use("/api/v1/learning", learningRoutes); // ← Step 8
 
 app.use((req, res) => {
   res.status(404).json({

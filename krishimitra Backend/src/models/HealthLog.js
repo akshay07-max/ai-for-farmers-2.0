@@ -86,11 +86,10 @@ const healthLogSchema = new mongoose.Schema(
 );
 
 // Auto-calculate milkTotal before saving
-healthLogSchema.pre("save", function (next) {
+healthLogSchema.pre("save", async function () {
   if (this.milkMorning != null || this.milkEvening != null) {
     this.milkTotal = (this.milkMorning || 0) + (this.milkEvening || 0);
   }
-  next();
 });
 
 healthLogSchema.index({ cattleId: 1, recordedAt: -1 });

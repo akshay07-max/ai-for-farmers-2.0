@@ -1,0 +1,49 @@
+# seed admin user to db (once)
+node src/scripts/seed_admin.js
+
+# 1. Login as admin (separate from farmer login)
+POST /api/v1/admin/auth/login
+{ "email": "admin@krishimitra.in", "password": "Admin@2026!" }
+→ returns adminToken (different from farmer JWT)
+
+# 2. Dashboard analytics
+GET /api/v1/admin/analytics
+Authorization: Bearer ADMIN_TOKEN
+→ DAU, total users, revenue, active courses, cattle alerts
+
+# 3. Revenue report
+GET /api/v1/admin/analytics/revenue?days=30
+Authorization: Bearer ADMIN_TOKEN
+
+# 4. List all users with search
+GET /api/v1/admin/users?search=ashu&district=nashik
+Authorization: Bearer ADMIN_TOKEN
+
+# 5. Ban a user
+PATCH /api/v1/admin/users/:userId/ban
+Authorization: Bearer ADMIN_TOKEN
+{ "reason": "Spam reports" }
+
+# 6. Add knowledge to AI (Sheti Mitra learns this)
+POST /api/v1/admin/knowledge/text
+Authorization: Bearer ADMIN_TOKEN
+{
+  "title": "Onion Storage Tips",
+  "category": "crop_disease",
+  "language": "mr",
+  "content": "कांदा साठवणीसाठी..."
+}
+
+# 7. Broadcast notification to all onion farmers
+POST /api/v1/admin/broadcast
+Authorization: Bearer ADMIN_TOKEN
+{
+  "title": "⚠️ Onion Price Drop Alert",
+  "body": "Lasalgaon mandi prices fell 15% today. Consider holding stock.",
+  "channel": "BOTH",
+  "filters": { "primaryCrop": "onion" }
+}
+
+# 8. Publish a course
+PATCH /api/v1/admin/courses/:courseId/publish
+Authorization: Bearer ADMIN_TOKEN
